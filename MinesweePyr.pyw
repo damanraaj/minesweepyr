@@ -1,12 +1,12 @@
 from tkinter import *
 from tkinter.messagebox import *
 from tkinter.simpledialog import *
-from random import choice
-        
-x=7
+from random import randint
+x=5
 y=x
 def isvalid(i,j):
-    return i in list(range(x)) and j in list(range(y))
+    return i>=0 and i<x and j >=0 and j<y
+
 def neighbours(i,j):
     out=[]
     for a in list(range(i-1,i+2)):
@@ -14,30 +14,47 @@ def neighbours(i,j):
             if isvalid(a,b):
                 out.append((a,b))
     out.remove((i,j))
-    return out
+    return set(out)
 
-row=[]
-game=[]
-def resetgrid(a,b):
-    global x,y,row,game
-    x=a
-    y=b
+def CreateNeighbourHood():
+    NeighbourHood={}
     for i in range(x):
-            row.append(0)
-    for j in range(y):
-            game.append(row.copy())
-    for i in game: print(i)
-    for k in range(10):
-        i=choice(list(range(a)))
-        j=choice(list(range(b)))
-        while game[j][i]==9:
-            i=choice(list(range(a)))
-            j=choice(list(range(b)))
-        print(i,j)
-        game[j][i]=9
+        for j in range(y):
+            NeighbourHood[(i,j)]=neighbours(i,j)
+    return NeighbourHood
 
-resetgrid(6,8)
-for i in game: print(i)
+class Box(Button):
+    NeighbourHood={}
+    def __init__(self,i=-1,j=-1,n=0,Parent=None):
+            Button.__init__(self,master=Parent,text=" ",width=4,height=2,command=self.pressed)
+            self.i=i
+            self.j=j
+            self.n=n
+            self.pack(side=LEFT,expand=YES,fill=BOTH)
+
+    def getidx(self):
+        return(self.i,self.j)
+    def hasbomb(self):
+        return self.n==9
+    def placebomb(self):
+        self.n=9
+    def incrementNeighbours(self):
+        if self.hasbomb():
+            print(self.getidx())
+            for u,v in Box.NeighbourHood[self.getidx()]:
+                if not boxes[u][v].hasbomb():
+                    boxes[u][v].n+=1
+
+    def pressed(self):
+        print(self.i,self.j)
+        if self.hasbomb():
+            if askokcancel("Game Over","Bye"):
+                root.quit()
+            else:
+                pass
+        else:
+            self.config(text=self.n)
+
 
 
 def endprg():
@@ -48,37 +65,33 @@ def endprg():
        pass
 def resetmsg():
    if askokcancel("Reset?","Start new game?"):
-      reset()
-
-class row:
-    def __init__(self,p):
-        self=Frame(p)
-        self.pack(side=TOP)
-class col:
-    def __init__(self,p):
-        self=Frame(p)
-        self.pack(side=TOP)
+      resetBox()
 
 
-class box:
-    def __init__(self,i,j,n=0,Parent=None,adj=[]):
-        self.i=i
-        self.j=j
-        self.n=0
-        self.adjacent=neighbours()
-        for x in adj:
-            self.adjacent.append(x)
-    def hasbomb(self): return n==9
-    def placeBomb(self):
-        self.n=9
-
-boxes=[]
-for i in list(range(x)):
-    for j in list(range(y)):
-        boxes.append(box(game[j][i]))
 
 root=Tk()
 root.title("Minesweepyr")
-main=Frame(root)
-main.pack(expand=YES)
-File=Menu(main)
+root.minsize(360,360)
+boxes=[]
+def resetBox():
+    Box.NeighbourHood=CreateNeighbourHood()
+    for i in range(x):
+        r=Frame(master=root)
+        r.pack(side=TOP,expand=YES,fill=BOTH)
+        boxrow=[]
+        for j in range(y):
+            C=Box(i,j,Parent=r)
+            boxrow.append(C)
+        boxes.append(boxrow.copy())
+    
+    for k in range(x*y//6):
+        i=randint(0,x-1)
+        j=randint(0,y-1)
+        while boxes[i][j].hasbomb():
+            i=randint(0,x-1)
+            j=randint(0,y-1)
+        boxes[i][j].placebomb()
+        boxes[i][j].incrementNeighbours()
+        print("bomb",i,j)
+resetBox()
+root.mainloop()
