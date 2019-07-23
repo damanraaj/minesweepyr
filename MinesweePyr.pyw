@@ -48,35 +48,31 @@ class Box(Button):
     def pressed(self):
         print(self.i,self.j)
         if self.hasbomb():
-            if askokcancel("Game Over","Bye"):
-                root.quit()
+            if askokcancel("Game Over","You stepped on a mine"):
+                resetBox()
             else:
-                pass
+                root.quit()
         else:
             self.config(text=self.n)
-
-
-
-def endprg():
-    if askyesno("Quit?","Do you really want to quit?"):
-       root.quit
-       root.destroy()
-    else:
-       pass
-def resetmsg():
-   if askokcancel("Reset?","Start new game?"):
-      resetBox()
-
-
 
 root=Tk()
 root.title("Minesweepyr")
 root.minsize(360,360)
 boxes=[]
 def resetBox():
+    global window
+    try:
+        window.destroy()
+    except:
+        pass
+    for row in boxes:
+        for k in row:
+            k.destroy()
+    window=Frame(master=root)
+    window.pack(fill=BOTH,expand=YES)
     Box.NeighbourHood=CreateNeighbourHood()
     for i in range(x):
-        r=Frame(master=root)
+        r=Frame(master=window)
         r.pack(side=TOP,expand=YES,fill=BOTH)
         boxrow=[]
         for j in range(y):
@@ -92,6 +88,5 @@ def resetBox():
             j=randint(0,y-1)
         boxes[i][j].placebomb()
         boxes[i][j].incrementNeighbours()
-        print("bomb",i,j)
 resetBox()
 root.mainloop()
