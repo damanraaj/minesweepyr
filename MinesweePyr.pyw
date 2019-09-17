@@ -49,7 +49,8 @@ class Box(Button):
         print(self.i,self.j)
         if self.hasbomb():
             if askokcancel("Game Over","You stepped on a mine"):
-                resetBox()
+                #resetBox()
+                pass
             else:
                 root.quit()
         else:
